@@ -16,7 +16,7 @@
 
 > Первая ветка — word/char TF-IDF: она сохраняет прямые маркировки, артикулы и опечатки. Вторая — joint embedding текста и главного изображения через Qwen3-VL-Embedding-2B по model-card chat contract с last-token pooling. Их вероятности объединяются отдельно для каждой категории. Для редких воспламеняемых добавляется разность cosine similarity до ближайшего положительного и отрицательного reference. Это улучшило public v10 с 0.793388 до 0.808892. Финальная v45 добавляет небольшую standardized linear head и пять узких, однозначных по условию правил; public вырос до 0.814222.
 
-Показать: диаграмму в [README.md](README.md) и формулу в [SOLUTION.md](SOLUTION.md).
+Показать: диаграмму в [README.md](../README.md) и формулу в [SOLUTION.md](SOLUTION.md).
 
 ## 2:15–3:15 — важнейший инженерный поворот
 
@@ -28,7 +28,7 @@
 
 > Я сохранял отрицательные результаты. Full-data OOF v9 самовольно сдвинул rare-class threshold и получил public 0.745090. В v10 я заморозил decisions до refit и получил 0.793388. LoRA, RBF, explicit-rule prompts и Qwen3.5 few-shot либо переобучались, либо не улучшали thresholded F1. v27 локально выглядел очень сильным, но exact-title lookup был оптимистично оценён и public снизился до 0.800964. Я удалил lookup и hard-nearest, оставил только устойчивую standardized head и пять правил с 39/39 precision на released data. Эта очищенная v45 получила 0.814222.
 
-Показать: [EXPERIMENT_JOURNEY.md](EXPERIMENT_JOURNEY.md) или [experiments.csv](experiments.csv).
+Показать: [EXPERIMENT_JOURNEY.md](EXPERIMENT_JOURNEY.md) или [experiments.csv](../experiments.csv).
 
 ## 4:15–5:00 — воспроизводимость
 

@@ -70,4 +70,4 @@ v27 показал, что outer proxy может быть оптимистич�
 6. Добавлена небольшая standardized head и только пять высокоточных правил.
 7. Generative explanation отделён от classifier verdict.
 
-Полный список 28 запусков с runtime, VRAM и причиной принятия/отклонения: [experiments.csv](experiments.csv).
+Полный список 33 запусков с runtime, VRAM и причиной принятия/отклонения: [experiments.csv](../experiments.csv).

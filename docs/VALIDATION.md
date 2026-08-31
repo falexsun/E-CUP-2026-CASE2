@@ -57,7 +57,7 @@ Leakage audit:
 
 ## Repeated OOF для v19 kNN
 
-Nearest-reference feature вычислялся leakage-safe: для каждой score-строки reference bank содержал только training folds. Использованы пять seeds `41,43,47,51,59`; усреднённый OOF signal определил frozen параметры [configs/v19_knn.json](configs/v19_knn.json).
+Nearest-reference feature вычислялся leakage-safe: для каждой score-строки reference bank содержал только training folds. Использованы пять seeds `41,43,47,51,59`; усреднённый OOF signal определил frozen параметры [configs/v19_knn.json](../configs/v19_knn.json).
 
 После выбора параметров full-data refit разрешён: он не меняет архитектуру, blend или threshold, а только обучает heads и формирует reference bank на всех released labels.
 

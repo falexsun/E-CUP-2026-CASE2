@@ -90,7 +90,7 @@ m = (1 - α) · (logit(p_base) - logit(t_base))
 p_final = sigmoid(m)
 ```
 
-Для v19 заморожены `α=0.3`, `scale=0.01`, `blend_threshold≈0.26`. Параметры выбраны по repeated 5-fold group OOF с seeds `41, 43, 47, 51, 59` и сохранены в [configs/v19_knn.json](configs/v19_knn.json). В full-data artifact попадает reference bank из всех размеченных карточек только после фиксации параметров.
+Для v19 заморожены `α=0.3`, `scale=0.01`, `blend_threshold≈0.26`. Параметры выбраны по repeated 5-fold group OOF с seeds `41, 43, 47, 51, 59` и сохранены в [configs/v19_knn.json](../configs/v19_knn.json). В full-data artifact попадает reference bank из всех размеченных карточек только после фиксации параметров.
 
 ## 8. Стандартизованная линейная голова
 
@@ -106,7 +106,7 @@ balanced Logistic Regression, C=0.03
 logit-blend с v19, α=0.25, threshold=0.26
 ```
 
-Гиперпараметры были выбраны до full refit по repeated group OOF, fixed holdout и outer group check. В финальном артефакте scaler и Logistic Regression переобучены на всех 5 502 карточках редкой категории. Замороженные параметры хранятся в [configs/v45.json](configs/v45.json).
+Гиперпараметры были выбраны до full refit по repeated group OOF, fixed holdout и outer group check. В финальном артефакте scaler и Logistic Regression переобучены на всех 5 502 карточках редкой категории. Замороженные параметры хранятся в [configs/v45.json](../configs/v45.json).
 
 ## 9. Пять безопасных правил
 

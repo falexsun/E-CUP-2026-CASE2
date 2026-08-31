@@ -37,7 +37,7 @@ data/
     └── ...
 ```
 
-`data.csv` содержит `id,name,description,category,label`; лишний индексный столбец безопасно сохраняется как raw field. Generated `train.csv`, `valid.csv` и `full_grouped.csv` не являются исходными данными и пересоздаются CLI-командами из README.
+`data.csv` содержит `id,name,description,category,label`; лишний индексный столбец безопасно сохраняется как raw field. Generated `train.csv`, `valid.csv` и `full_grouped.csv` не являются исходными данными и пересоздаются командами ниже.
 
 Контрольные свойства released train:
 
@@ -68,7 +68,80 @@ export SHARED_MODELS_PATH=/shared_models
 
 ## Полная сборка
 
-Исполняемая последовательность приведена в разделе «Полное воспроизведение v45» файла [README.md](README.md). Критические frozen decisions находятся не в тексте отчёта, а в [configs/v19_knn.json](configs/v19_knn.json) и [configs/v45.json](configs/v45.json). Полная цепочка запускается `make reproduce-v45`.
+Критические frozen decisions находятся не в тексте отчёта, а в
+[configs/v19_knn.json](../configs/v19_knn.json) и
+[configs/v45.json](../configs/v45.json). Полная цепочка запускается одной
+командой:
+
+```bash
+make reproduce-v45 \
+  DATA=data/data.csv \
+  SCHEMA=configs/ozon_schema.json \
+  EMBED_MODEL=models/Qwen/Qwen3-VL-Embedding-2B
+```
+
+Она последовательно выполняет:
+
+```bash
+# 1. Entity grouping и фиксированный holdout
+uv run ozon-quality official-group-data \
+  --input data/data.csv --schema configs/ozon_schema.json \
+  --output data/full_grouped.csv
+
+uv run ozon-quality official-split \
+  --input data/data.csv --schema configs/ozon_schema.json \
+  --train-output data/train.csv --valid-output data/valid.csv --seed 42
+
+# 2. Category-specific lexical OOF
+uv run ozon-quality official-text-baseline \
+  --train data/train.csv --valid data/valid.csv \
+  --schema configs/ozon_schema.json --output artifacts/text_v2 \
+  --seed 42 --oof-folds 5
+
+# 3. Joint text/image Qwen3-VL embeddings
+uv run ozon-quality official-reference-embed \
+  --input data/full_grouped.csv --schema configs/ozon_schema.json \
+  --model models/Qwen/Qwen3-VL-Embedding-2B \
+  --output artifacts/reference_joint_full --mode joint \
+  --batch-size 64 --max-pixels 100352
+
+# 4. Выбор multimodal blend на train OOF
+uv run ozon-quality official-multimodal \
+  --train data/train.csv --valid data/valid.csv \
+  --embedding-input data/full_grouped.csv \
+  --embedding-cache artifacts/reference_joint_full \
+  --lexical-artifacts artifacts/text_v2 \
+  --schema configs/ozon_schema.json --output artifacts/multimodal_v8
+
+# 5. Full refit с frozen v8 decisions
+uv run ozon-quality official-refit \
+  --input data/full_grouped.csv \
+  --embedding-cache artifacts/reference_joint_full \
+  --frozen-artifact artifacts/multimodal_v8/official_multimodal.joblib \
+  --schema configs/ozon_schema.json \
+  --output artifacts/v10_fullrefit.joblib
+
+# 6. v19 reference bank
+uv run ozon-quality official-attach-knn \
+  --input data/full_grouped.csv \
+  --embedding-cache artifacts/reference_joint_full \
+  --base-artifact artifacts/v10_fullrefit.joblib \
+  --config configs/v19_knn.json --schema configs/ozon_schema.json \
+  --output artifacts/v19_fullrefit.joblib
+
+# 7. v45 standardized head и пять frozen rules
+uv run python scripts/build_standardized_head_artifact.py \
+  --base-artifact artifacts/v19_fullrefit.joblib \
+  --data data/full_grouped.csv \
+  --embedding-cache artifacts/reference_joint_full \
+  --config configs/v45.json \
+  --output artifacts/v45_linear_intermediate.joblib
+
+uv run python scripts/build_regex_only_artifact.py \
+  --base-artifact artifacts/v45_linear_intermediate.joblib \
+  --config configs/v45.json \
+  --output artifacts/official_multimodal.joblib
+```
 
 После `official-reference-embed` файл `state.json` должен содержать:
 
@@ -92,7 +165,7 @@ Builder `official-attach-knn` был повторно запущен из repo-�
 - `max_abs_difference` reference embeddings = `0.0`;
 - fingerprint reference IDs: `69edc70fbe31d54a5a37fe625b4ecce7bd84a12832d2f7e3ce6ad3c117170b7d`.
 
-Поверх воспроизведённой v19 были повторно запущены v45 builders с [configs/v45.json](configs/v45.json). Сравнение с реально отправленным артефактом на всех 12 971 released строках показало:
+Поверх воспроизведённой v19 были повторно запущены v45 builders с [configs/v45.json](../configs/v45.json). Сравнение с реально отправленным артефактом на всех 12 971 released строках показало:
 
 - scaler mean/scale и коэффициенты Logistic Regression совпали точно;
 - reference IDs, labels и embeddings совпали точно;
@@ -119,7 +192,7 @@ Builder `official-attach-knn` был повторно запущен из repo-�
 ## Inference smoke
 
 ```bash
-SHARED_MODELS_PATH=/shared_models python -u run.py \
+SHARED_MODELS_PATH=/shared_models python -u final_submission/run.py \
   --test_data_path /path/to/smoke.csv \
   --output_path /tmp/predictions.csv
 ```
@@ -133,7 +206,10 @@ SHARED_MODELS_PATH=/shared_models python -u run.py \
 - отсутствие сетевых загрузок;
 - работа deterministic fallback при ошибке explanation LLM.
 
-Exact-ZIP smoke v45 выполнялся на A100: 10/10 embeddings, 10/10 комментариев, 11 строк CSV с header.
+Exact-v45 smoke повторно выполнен 2026-08-31 на NVIDIA A100 80 GB с model
+snapshots из `models/Qwen/`: 10/10 embeddings, 10/10 комментариев, 10/10 строк
+прошли строгий output contract. Нефатальные предупреждения Transformers о
+документации video kwargs и deprecated `torch_dtype` не повлияли на запуск.
 
 Исследовательские LoRA/retrieval scripts требуют дополнительный набор зависимостей:
 

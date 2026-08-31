@@ -1,198 +1,162 @@
-# E-CUP 2026 — контроль качества товаров Ozon
+# E-CUP 2026 · Контроль качества товаров Ozon
 
-Воспроизводимое multimodal-решение задачи №2. По названию, описанию и изображениям товара pipeline определяет, соответствует ли карточка правилам категории `БАД` или `Легковоспламеняющиеся`, а затем формирует обязательный комментарий и вердикт `бан / не бан`.
+Воспроизводимое мультимодальное решение задачи №2. По названию, описанию и
+главному изображению товара система определяет соответствие правилам категории
+`БАД` или `Легковоспламеняющиеся`, затем формирует комментарий для модератора и
+строгий вердикт `бан / не бан`.
 
-**Лучший подтверждённый public score: `0.8142217631` (v45); на private leaderboard решение вошло в топ-8.** Это v19-ансамбль TF-IDF + Qwen3-VL + leakage-safe reference kNN, дополненный небольшой стандартизованной головой и пятью высокоточными правилами без exact-title lookup.
+| Итог | Значение |
+|---|---|
+| Финальная версия | `v45` |
+| Public Macro F1 | **0.8142217631** |
+| Private leaderboard | **топ-8** |
+| Runtime-модели | Qwen3-VL-Embedding-2B + Qwen3.5-4B |
+| Лицензии моделей | Apache-2.0 |
+| Точный submission | [`final_submission/`](final_submission/) |
+| Проверка репозитория | `make quality` |
 
-Точный отправленный runtime вместе с classifier artifact сохранён в
-[`final_submission/`](final_submission/). Его происхождение и контрольные суммы:
-[`FINAL_SUBMISSION.md`](FINAL_SUBMISSION.md).
+## Маршрут для жюри
 
-## Идея решения
+### За 3 минуты
+
+1. [Матрица соответствия требованиям второго этапа](docs/REPOSITORY_AUDIT.md).
+2. [Точный отправленный v45 и его SHA-256](docs/FINAL_SUBMISSION.md).
+3. [Архитектура, модели и лицензии](docs/SOLUTION.md), [MODELS.md](docs/MODELS.md).
+
+### За 10 минут
+
+4. [Как развивалось решение и почему идеи отклонялись](docs/EXPERIMENT_JOURNEY.md).
+5. [Validation, leakage checks и честные ограничения](docs/VALIDATION.md).
+6. [Качество комментариев для модератора](docs/COMMENT_QUALITY.md).
+7. [Полное воспроизведение](docs/REPRODUCIBILITY.md).
+
+Все материалы собраны в [индексе документации](docs/README.md).
+
+## Почему решение устроено именно так
 
 ```mermaid
 flowchart LR
-    A["Название + описание"] --> B["word/char TF-IDF"]
-    A --> C["Qwen3-VL-Embedding-2B"]
-    I["Главное изображение"] --> C
-    B --> D["Category-specific blend"]
-    C --> D
-    C --> E["Reference kNN для редкого класса"]
-    C --> J["Standardized linear head"]
-    D --> F["Калиброванный вердикт"]
-    E --> F
-    J --> F
-    R["5 узких high-precision rules"] --> F
-    F --> G["Qwen3.5-4B: объяснение"]
-    F --> H["Детерминированный fallback"]
+    T["Название + описание"] --> L["word/char TF-IDF"]
+    T --> V["Qwen3-VL joint embedding"]
+    I["Главное изображение"] --> V
+    L --> B["Category-specific blend"]
+    V --> B
+    V --> K["Reference kNN редкого класса"]
+    V --> H["Standardized linear head"]
+    B --> D["Frozen decision"]
+    K --> D
+    H --> D
+    R["5 узких rules"] --> D
+    D --> C["Qwen3.5-4B comment"]
+    D --> F["Deterministic fallback"]
 ```
 
-Архитектура обусловлена данными, а не выбрана заранее:
+- В категории `БАД` 5 564 положительных примера: устойчиво работает сочетание
+  lexical и joint VLM признаков.
+- В категории `Легковоспламеняющиеся` только 198 положительных строк и 113
+  независимых positive groups: поэтому используется отдельный reference kNN.
+- Пороги и веса фиксируются по group OOF до full-data refit.
+- Генератор комментария получает уже готовый label и не может изменить метрику
+  классификатора.
 
-- у `БАД` 5 564 положительных примера, поэтому хорошо работает устойчивый lexical/VLM blend;
-- у `Легковоспламеняющиеся` только 198 положительных примеров из 5 502, поэтому отдельный reference kNN лучше сохраняет редкие товарные семейства;
-- генерация комментария отделена от классификации и не может изменить вердикт;
-- пороги и веса фиксируются на group OOF до full-data refit.
+## Подтверждённая эволюция
 
-Подробное устройство и формулы: [SOLUTION.md](SOLUTION.md).
-
-## Результаты
-
-| Версия | Проверка | Score | Решение |
+| Версия | Проверка | Macro F1 | Вывод |
 |---|---|---:|---|
-| text v2 | fixed entity holdout | 0.756857 | baseline |
-| reference VLM v8 | fixed entity holdout | 0.788047 | исправлен image/model contract |
-| full OOF v9 | public | 0.745090 | отклонён: сдвиг порога |
-| frozen-decision refit v10 | public | 0.793388 | принят |
-| reference kNN v19 | public | 0.808892 | предыдущий лучший; основа v45 |
-| title/rules v27 | public | 0.800964 | отклонён: не перенёсся |
-| **standardized + 5 узких rules v45** | **public** | **0.814222** | **новый лучший** |
+| text v2 | fixed holdout | 0.756857 | сильный дешёвый baseline |
+| reference VLM v8 | fixed holdout | 0.788047 | исправлен image/model contract |
+| full OOF v9 | public | 0.745090 | отклонён: нестабильный новый threshold |
+| frozen refit v10 | public | 0.793388 | решения заморожены до refit |
+| reference kNN v19 | public | 0.808892 | основа финальной версии |
+| title/rules v27 | public | 0.800964 | отклонён: optimistic lookup не перенёсся |
+| **standardized + rules v45** | **public** | **0.814222** | **финальный submission** |
 
-Почему некоторые локально сильные идеи ухудшали public и как менялась система: [EXPERIMENT_JOURNEY.md](EXPERIMENT_JOURNEY.md). Полные числа: [RESULTS.md](RESULTS.md) и машинно-читаемый [experiments.csv](experiments.csv).
+Полный машинно-читаемый журнал: [`experiments.csv`](experiments.csv).
 
-## Быстрый старт
+## Точный конкурсный runtime
 
-Требования: Python 3.11/3.12, `uv`; CUDA нужна только для извлечения Qwen3-VL embeddings и полного inference.
+Каталог [`final_submission/`](final_submission/) извлечён из реально отправленного
+ZIP. Он содержит код и обученный classifier artifact, но не содержит базовые
+веса Qwen: организаторы предоставляют их через `SHARED_MODELS_PATH`.
 
 ```bash
-cd case2
-uv sync --extra dev --extra models
-uv run pytest
-uv run ruff check src tests \
-  scripts/build_standardized_head_artifact.py \
-  scripts/build_regex_only_artifact.py \
-  scripts/verify_final_submission.py
 uv run python scripts/verify_final_submission.py
 ```
 
-Проверка CLI:
+Проверяемые SHA-256:
+
+- submission ZIP: `1361b836b6c926e0be0c99689b29238a82d8add53adc7a4e17e537ddbfe12b07`;
+- classifier artifact: `e7604e6868e46f673428aebf8439eb87e3875fdfbd8c3c2e4cfd8c7ac7d9d53a`.
+
+## Быстрая проверка репозитория
+
+Требования: Python 3.11/3.12 и [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
-uv run ozon-quality --help
+uv sync --extra dev
+make quality
 ```
 
-## Полное воспроизведение v45
+Ожидаемый результат:
 
-Данные размещаются как `data/data.csv` и `data/images/<id>/*`. Веса моделей берутся из разрешённого организаторами каталога и не хранятся в Git.
+```text
+ruff: all checks passed
+pytest: 49 passed, 1 skipped
+final v45 snapshot: OK
+```
+
+GPU и веса моделей для этих CPU-проверок не нужны. Полное обучение и inference
+описаны в [REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md).
+
+## Официальный inference
 
 ```bash
-# 1. Одинаковая группировка сущностей для split и full refit
-uv run ozon-quality official-group-data \
-  --input data/data.csv --schema configs/ozon_schema.json \
-  --output data/full_grouped.csv
-
-# 2. Зафиксированный leakage-aware holdout
-uv run ozon-quality official-split \
-  --input data/data.csv --schema configs/ozon_schema.json \
-  --train-output data/train.csv --valid-output data/valid.csv \
-  --seed 42
-
-# 3. Category-specific lexical OOF
-uv run ozon-quality official-text-baseline \
-  --train data/train.csv --valid data/valid.csv \
-  --schema configs/ozon_schema.json --output artifacts/text_v2 \
-  --seed 42 --oof-folds 5
-
-# 4. Model-card Qwen3-VL contract: joint input, last-token pooling
-uv run ozon-quality official-reference-embed \
-  --input data/full_grouped.csv --schema configs/ozon_schema.json \
-  --model models/Qwen/Qwen3-VL-Embedding-2B \
-  --output artifacts/reference_joint_full --mode joint \
-  --batch-size 64 --max-pixels 100352
-
-# 5. Выбор blend/threshold только на train OOF, holdout остаётся независимым
-uv run ozon-quality official-multimodal \
-  --train data/train.csv --valid data/valid.csv \
-  --embedding-input data/full_grouped.csv \
-  --embedding-cache artifacts/reference_joint_full \
-  --lexical-artifacts artifacts/text_v2 \
-  --schema configs/ozon_schema.json --output artifacts/multimodal_v8
-
-# 6. Full-data refit с замороженными решениями v8
-uv run ozon-quality official-refit \
-  --input data/full_grouped.csv \
-  --embedding-cache artifacts/reference_joint_full \
-  --frozen-artifact artifacts/multimodal_v8/official_multimodal.joblib \
-  --schema configs/ozon_schema.json \
-  --output artifacts/v10_fullrefit.joblib
-
-# 7. Воспроизводимое присоединение v19 reference bank
-uv run ozon-quality official-attach-knn \
-  --input data/full_grouped.csv \
-  --embedding-cache artifacts/reference_joint_full \
-  --base-artifact artifacts/v10_fullrefit.joblib \
-  --config configs/v19_knn.json \
-  --schema configs/ozon_schema.json \
-  --output artifacts/v19_fullrefit.joblib
-
-# 8. Frozen standardized head из versioned v45 config
-uv run python scripts/build_standardized_head_artifact.py \
-  --base-artifact artifacts/v19_fullrefit.joblib \
-  --data data/full_grouped.csv \
-  --embedding-cache artifacts/reference_joint_full \
-  --config configs/v45.json \
-  --output artifacts/v45_linear_intermediate.joblib
-
-# 9. Пять узких правил; exact-title и hard-nearest удалены
-uv run python scripts/build_regex_only_artifact.py \
-  --base-artifact artifacts/v45_linear_intermediate.joblib \
-  --config configs/v45.json \
-  --output artifacts/official_multimodal.joblib
+SHARED_MODELS_PATH=/shared_models python -u final_submission/run.py \
+  --test_data_path /path/to/test.csv \
+  --output_path /path/to/predictions.csv
 ```
 
-Подробности об окружении, контрольных хэшах и A100 smoke: [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
+Runner гарантирует:
 
-## Inference
+- две колонки `id,result` в исходном порядке;
+- формат `<комментарий>...<вердикт>бан|не бан`;
+- комментарий длиной 50–300 символов;
+- отсутствие сетевых загрузок;
+- deterministic fallback при сбое explanation LLM.
 
-Официальный entry point:
-
-```bash
-SHARED_MODELS_PATH=/shared_models python -u run.py \
-  -i /path/to/test.csv \
-  -o /path/to/predictions.csv
-```
-
-Runner:
-
-1. извлекает joint embeddings из текста и главного изображения;
-2. применяет frozen lexical/VLM/kNN ensemble, standardized head и пять правил;
-3. генерирует объяснение через `Qwen3.5-4B`;
-4. при ошибке LLM использует детерминированный fallback; границы его доказательности описаны в [COMMENT_QUALITY.md](COMMENT_QUALITY.md);
-5. проверяет порядок ID и строгий формат `id,result`.
-
-## Карта репозитория
+## Структура
 
 | Путь | Назначение |
 |---|---|
-| [src/ozon_quality](src/ozon_quality) | data contract, split, обучение, inference |
-| [run.py](run.py) | offline entry point соревнования |
-| [configs/ozon_schema.json](configs/ozon_schema.json) | каноническое отображение колонок |
-| [configs/v19_knn.json](configs/v19_knn.json) | замороженные параметры reference kNN |
-| [configs/v45.json](configs/v45.json) | финальная standardized head и безопасные правила |
-| [tests](tests) | parsing, leakage, metric, artifact и output-contract тесты |
-| [scripts](scripts) | финальные builders и архив ablation/research экспериментов |
-| [experiments.csv](experiments.csv) | полный журнал принятых и отклонённых гипотез |
-| [DATA_AUDIT.md](DATA_AUDIT.md) | аудит данных и дисбаланса |
-| [VALIDATION.md](VALIDATION.md) | split, leakage checks и ограничения оценки |
-| [MODELS.md](MODELS.md) | модели, revisions, лицензии и роли |
-| [FINAL_SUBMISSION.md](FINAL_SUBMISSION.md) | точный v45 snapshot и контрольные суммы |
-| [COMMENT_QUALITY.md](COMMENT_QUALITY.md) | полезность комментариев и границы доказательности |
-| [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | лицензии моделей и основных библиотек |
+| [`final_submission/`](final_submission/) | точный код и classifier artifact отправленного v45 |
+| [`src/ozon_quality/`](src/ozon_quality/) | подготовка данных, split, обучение и inference |
+| [`configs/`](configs/) | schema и frozen параметры v19/v45 |
+| [`scripts/`](scripts/) | финальные builders и архив абляций |
+| [`tests/`](tests/) | metric, leakage, cache, artifact и output-contract tests |
+| [`docs/`](docs/) | решение, путь экспериментов, validation и воспроизводимость |
+| [`experiments.csv`](experiments.csv) | журнал принятых и отклонённых запусков |
 
-## Рекомендуемый порядок чтения для ревью
+Датасет, изображения, промежуточные caches и базовые веса Qwen не коммитятся.
 
-1. [FINAL_SUBMISSION.md](FINAL_SUBMISSION.md) — какой именно код и artifact оценивались.
-2. [SOLUTION.md](SOLUTION.md) — что именно делает финальная система.
-3. [EXPERIMENT_JOURNEY.md](EXPERIMENT_JOURNEY.md) — как я к ней пришёл и почему отбрасывал идеи.
-4. [VALIDATION.md](VALIDATION.md) — почему локальным числам можно или нельзя доверять.
-5. [REPRODUCIBILITY.md](REPRODUCIBILITY.md) — как повторить обучение и inference.
-6. [COMMENT_QUALITY.md](COMMENT_QUALITY.md) — что комментарии доказывают и чего не доказывают.
-7. [JURY_PITCH.md](JURY_PITCH.md) — сценарий 5–7-минутной защиты и ответы на вопросы.
-8. [experiments.csv](experiments.csv) — первичный журнал всех запусков.
+## Соответствие правилам
 
-## Ограничения
+- Используются только разрешённые модели до 4B:
+  `Qwen/Qwen3-VL-Embedding-2B` и `Qwen/Qwen3.5-4B`.
+- Обе модели имеют Apache-2.0; Model IDs и revisions приведены в
+  [MODELS.md](docs/MODELS.md).
+- Закрытые API и проприетарные модели не используются.
+- Inference полностью автономный и рассчитан на официальный baseline image.
+- Обученный classifier artifact опубликован; вся цепочка его восстановления
+  описана командами и versioned configs.
 
-- Всего 113 независимых положительных entity groups категории воспламеняемых; variance между folds остаётся высоким.
-- Шаблонные описания и противоречивые товарные семейства создают label noise.
-- Public leaderboard использовался как внешняя проверка готовых версий, а не как источник обучающих labels; v27 показал риск lookup-переобучения, а v45 подтвердил перенос более консервативной надстройки.
-- `joblib`-артефакты следует загружать только из доверенного источника.
+## Честно зафиксированные ограничения
+
+- Для редкого класса всего 113 positive entity groups, поэтому variance между
+  folds остаётся высокой.
+- Пять regex v45 отбирались по released train; их outer gain является
+  model-selection proxy, а не независимой оценкой. Перенос подтверждён public.
+- Explanation LLM видит название и описание, но не пиксели. У fallback есть
+  известная зона риска необоснованной ссылки на изображения; она раскрыта в
+  [COMMENT_QUALITY.md](docs/COMMENT_QUALITY.md), а точный submission не
+  переписывался задним числом.
+- `joblib`-артефакт следует загружать только из этого доверенного репозитория.

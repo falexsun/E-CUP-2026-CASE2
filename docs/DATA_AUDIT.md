@@ -11,7 +11,7 @@
 - у каждой карточки объявлено хотя бы одно изображение;
 - число изображений: median 5, p90 5, max 5.
 
-Canonical mapping зафиксирован в [configs/ozon_schema.json](configs/ozon_schema.json):
+Canonical mapping зафиксирован в [configs/ozon_schema.json](../configs/ozon_schema.json):
 
 ```text
 id → id
@@ -91,4 +91,4 @@ entity_group → group (для generated split files)
 - `data/valid.csv`: 2 543 строки;
 - embedding cache: 12 971 × 2 048, complete, zero failures.
 
-Команды пересоздания находятся в [README.md](README.md).
+Команды пересоздания находятся в [REPRODUCIBILITY.md](REPRODUCIBILITY.md).

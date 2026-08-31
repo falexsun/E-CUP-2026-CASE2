@@ -20,4 +20,4 @@
 (BSD-style), Transformers/Accelerate/Sentence Transformers (Apache-2.0).
 
 Точные разрешённые версии и транзитивные зависимости зафиксированы в
-[`uv.lock`](uv.lock). Research extras не входят в официальный inference.
+[`uv.lock`](../uv.lock). Research extras не входят в официальный inference.
