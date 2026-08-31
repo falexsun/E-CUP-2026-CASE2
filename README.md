@@ -1,5 +1,7 @@
 # E-CUP 2026 · Контроль качества товаров Ozon
 
+[![quality](https://github.com/falexsun/E-CUP-2026-CASE2/actions/workflows/quality.yml/badge.svg)](https://github.com/falexsun/E-CUP-2026-CASE2/actions/workflows/quality.yml)
+
 Воспроизводимое мультимодальное решение задачи №2. По названию, описанию и
 главному изображению товара система определяет соответствие правилам категории
 `БАД` или `Легковоспламеняющиеся`, затем формирует комментарий для модератора и
