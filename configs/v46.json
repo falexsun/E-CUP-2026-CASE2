@@ -1,0 +1,70 @@
+{
+  "artifact_version": 1,
+  "base": "v45_standardized_regex_fullrefit",
+  "public_macro_f1": null,
+  "category": "Легковоспламеняющиеся",
+  "hypothesis": "Add 4 high-precision regex rules for flammable subtypes not covered by v45",
+  "new_rules_evidence": "Full-data P=1.0, fold-safe P>=1.0, 0 BAD cross-matches",
+  "expected_new_tp": 10,
+  "linear_head": {
+    "C": 0.03,
+    "class_weight": "balanced",
+    "alpha_head": 0.25,
+    "blend_threshold": 0.26,
+    "selection": "inherited_from_v45"
+  },
+  "regex_rules": [
+    "standalone_coal_or_fuel_briquette",
+    "disposable_grill_with_coal",
+    "gas_for_portable_stove_or_burner",
+    "smoke_bomb",
+    "barbecue_fuel_briquette",
+    "matches_tourist",
+    "smoke_broad",
+    "sparkler",
+    "moxibustion"
+  ],
+  "new_regex_rules": [
+    {
+      "name": "matches_tourist",
+      "pattern": "\\bспичк\\w*\\s+(?:длительн\\w*\\s+)?горен\\w*.*(?:турист|50\\s*мм|5\\s*см)\\b",
+      "label": 1,
+      "evidence": "5 TP, P=1.0, tourist matches with long burn time",
+      "examples": ["Спички длительного горения туристические 3 упаковки", "Спички длительного горения Image Турист"]
+    },
+    {
+      "name": "smoke_broad",
+      "pattern": "\\b(?:шашк\\w*\\s+(?:дымов|страйкбол|учебн|имитацион|бел)|гранат\\w*\\s+страйкбол)\\b",
+      "label": 1,
+      "evidence": "3 TP, P=1.0, smoke grenades and training smoke",
+      "examples": ["Граната страйкбольная PYROFX RGD-5"]
+    },
+    {
+      "name": "sparkler",
+      "pattern": "бенгальск\\w*\\s+свеч",
+      "label": 1,
+      "evidence": "1 TP, P=1.0, sparkler candles",
+      "examples": ["Бенгальская свеча ТСЗ 400 мм"]
+    },
+    {
+      "name": "moxibustion",
+      "pattern": "мокс\\w*|моксотерап",
+      "label": 1,
+      "evidence": "1 TP, P=1.0, moxibustion sets with burning mugwort",
+      "examples": ["Бамбуковый домик для моксотерапии"]
+    }
+  ],
+  "regex_selection": "full_data_precision_1_0_and_fold_safe_validation",
+  "excluded": [
+    "exact_title_lookup",
+    "nearest_hard_override",
+    "colored_smoke_rule",
+    "party_cracker_rule",
+    "gas_mini_burner_rule"
+  ],
+  "exclusion_reasons": {
+    "colored_smoke_rule": "P=0.667 too low for high-precision rule",
+    "party_cracker_rule": "fold-safe P=0.20, too unstable",
+    "gas_mini_burner_rule": "P=0.041, too broad"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "columns": {
+    "id": "id",
+    "title": "name",
+    "description": "description",
+    "category": "category",
+    "label": "label",
+    "group": "entity_group"
+  },
+  "text_fields": ["title", "description", "category"],
+  "images_directory": "images",
+  "image_extensions": [".jpg", ".jpeg", ".png", ".webp"],
+  "label_separator": "|",
+  "task_type": "single_label",
+  "label_values": {
+    "0": "0",
+    "1": "1"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "artifact_version": 1,
+  "base": "v19_public_confirmed",
+  "public_macro_f1": 0.8142217630853994,
+  "category": "Легковоспламеняющиеся",
+  "linear_head": {
+    "C": 0.03,
+    "class_weight": "balanced",
+    "alpha_head": 0.25,
+    "blend_threshold": 0.26,
+    "selection": "repeated_group_oof_then_fixed_holdout_and_outer_check"
+  },
+  "regex_rules": [
+    "standalone_coal_or_fuel_briquette",
+    "disposable_grill_with_coal",
+    "gas_for_portable_stove_or_burner",
+    "smoke_bomb",
+    "barbecue_fuel_briquette"
+  ],
+  "regex_selection": "task_definition_and_zero_false_positives_in_released_data",
+  "excluded": [
+    "exact_title_lookup",
+    "nearest_hard_override",
+    "dry_fuel_with_ignition_source"
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "artifact_version": 1,
+  "base": "v45_standardized_regex_fullrefit",
+  "hypothesis": "Add 6 high-precision regex rules: 4 safe general + 2 party cracker patterns targeting fold 3 bottleneck",
+  "category": "Легковоспламеняющиеся",
+  "new_rules_evidence": "All P=1.0 on full data, 0 BAD cross-matches, fold-safe validated",
+  "expected_new_tp": 20,
+  "outer_flammable_f1": 0.816327,
+  "outer_macro_f1_proxy": 0.876114,
+  "linear_head": {
+    "C": 0.03,
+    "class_weight": "balanced",
+    "alpha_head": 0.25,
+    "blend_threshold": 0.26,
+    "selection": "inherited_from_v45"
+  },
+  "regex_rules": [
+    "standalone_coal_or_fuel_briquette",
+    "disposable_grill_with_coal",
+    "gas_for_portable_stove_or_burner",
+    "smoke_bomb",
+    "barbecue_fuel_briquette",
+    "matches_tourist",
+    "smoke_broad",
+    "sparkler",
+    "moxibustion",
+    "party_super",
+    "party_maxi"
+  ],
+  "new_regex_rules": [
+    {
+      "name": "matches_tourist",
+      "pattern": "\\bспичк\\w*\\s+(?:длительн\\w*\\s+)?горен\\w*.*(?:турист|50\\s*мм|5\\s*см)\\b",
+      "label": 1,
+      "evidence": "5 TP, P=1.0, tourist matches with long burn time"
+    },
+    {
+      "name": "smoke_broad",
+      "pattern": "\\b(?:шашк\\w*\\s+(?:дымов|страйкбол|учебн|имитацион|бел)|гранат\\w*\\s+страйкбол)\\b",
+      "label": 1,
+      "evidence": "10 TP, P=1.0, smoke grenades and training smoke"
+    },
+    {
+      "name": "sparkler",
+      "pattern": "бенгальск\\w*\\s+свеч",
+      "label": 1,
+      "evidence": "1 TP, P=1.0, sparkler candles"
+    },
+    {
+      "name": "moxibustion",
+      "pattern": "мокс\\w*|моксотерап",
+      "label": 1,
+      "evidence": "1 TP, P=1.0, moxibustion sets"
+    },
+    {
+      "name": "party_super",
+      "pattern": "хлопушк\\w*\\s+супер",
+      "label": 1,
+      "evidence": "10 TP, P=1.0, all in fold 3, pyrotechnic party crackers"
+    },
+    {
+      "name": "party_maxi",
+      "pattern": "хлопушк\\w*\\s+макси",
+      "label": 1,
+      "evidence": "3 TP, P=1.0, all in fold 3, pyrotechnic party crackers"
+    }
+  ],
+  "excluded": [
+    "exact_title_lookup",
+    "nearest_hard_override",
+    "party_cracker_broad"
+  ],
+  "exclusion_reasons": {
+    "party_cracker_broad": "Хлопушка для праздника catches 14 TP fold3 but 7 FP other folds"
+  }
+}

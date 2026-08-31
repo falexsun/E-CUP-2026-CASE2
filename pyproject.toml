@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ozon-quality-control"
+version = "0.1.0"
+description = "Multimodal LLM/VLM pipeline for Ozon product quality control"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "joblib>=1.4,<2",
+  "numpy>=1.26,<3",
+  "pandas>=2.2,<3",
+  "pyarrow>=15,<24",
+  "pillow>=10.4,<13",
+  "requests>=2.32,<3",
+  "scikit-learn>=1.5,<2",
+]
+
+[project.optional-dependencies]
+models = [
+  "accelerate>=1.2,<2",
+  "sentence-transformers>=3.3,<6",
+  "torch>=2.4,<3",
+  "torchvision>=0.19,<1",
+  "transformers>=4.51,<6",
+]
+research = [
+  "datasets>=3,<5",
+  "peft>=0.17,<1",
+]
+dev = ["pytest>=8.3,<10", "ruff>=0.8,<1"]
+
+[project.scripts]
+ozon-quality = "ozon_quality.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ozon_quality"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/test_nested_audit.py" = ["E402"]

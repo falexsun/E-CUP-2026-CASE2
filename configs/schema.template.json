@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "columns": {
+    "id": "item_id",
+    "title": "name",
+    "brand": "brand",
+    "description": "description",
+    "category": "category_name",
+    "attributes": "attributes",
+    "images": "image_urls",
+    "label": "target",
+    "group": "seller_id"
+  },
+  "text_fields": ["title", "brand", "description", "category", "attributes"],
+  "image_separator": "|",
+  "label_separator": "|",
+  "task_type": "auto",
+  "label_values": {
+    "approved": "approved",
+    "rejected": "rejected"
+  }
+}

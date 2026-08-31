@@ -1,0 +1,12 @@
+{
+  "category": "Легковоспламеняющиеся",
+  "metric": "repeated_group_oof_max_positive_minus_max_negative_cosine",
+  "cv_seeds": [41, 43, 47, 51, 59],
+  "folds": 5,
+  "knn_threshold": -0.001455795718356967,
+  "base_threshold": 0.3310261532664299,
+  "margin_scale": 0.01,
+  "knn_alpha": 0.3,
+  "blend_threshold": 0.2599999560899826,
+  "batch_size": 512
+}
