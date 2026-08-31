@@ -12,6 +12,7 @@
 | Нет закрытых inference API | offline `transformers`, scikit-learn и локальные artifacts | выполнено |
 | Нет внешних train labels или закрытых объяснений | только released train и его labels | выполнено |
 | Training pipeline воспроизводим | [REPRODUCIBILITY.md](REPRODUCIBILITY.md), `make reproduce-v45` | выполнено |
+| Архитектура расширяема на новые категории | общие schema/VLM/OOF/refit stages + отдельные category heads; [SOLUTION.md](SOLUTION.md#11-масштабирование-на-новые-категории) | выполнено с retraining |
 | Frozen decisions versioned | [`configs/v19_knn.json`](../configs/v19_knn.json), [`configs/v45.json`](../configs/v45.json) | выполнено |
 | История экспериментов сохранена | [EXPERIMENT_JOURNEY.md](EXPERIMENT_JOURNEY.md), [`experiments.csv`](../experiments.csv) | выполнено |
 | Validation leakage описан честно | [VALIDATION.md](VALIDATION.md) | выполнено |
@@ -58,4 +59,3 @@ valid results: 10/10
 
 Предупреждения Transformers о документации `min_frames/max_frames` и deprecated
 `torch_dtype` не влияют на загрузку моделей или результат smoke.
-

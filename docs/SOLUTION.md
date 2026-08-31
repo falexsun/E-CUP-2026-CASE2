@@ -126,7 +126,42 @@ logit-blend с v19, α=0.25, threshold=0.26
 
 Такое разделение важно: генеративная модель не является скрытым вторым классификатором и не создаёт недетерминированность метрики.
 
-## 11. Артефакт и runtime
+## 11. Масштабирование на новые категории
+
+Pipeline разделяет общую инфраструктуру карточки и category-specific decision
+logic. Без изменений переиспользуются:
+
+1. `data.py` — schema adapter, нормализация текста и поиск `images/<id>/`;
+2. entity grouping и group-aware split;
+3. word/char TF-IDF и Qwen3-VL joint embedding extractor;
+4. OOF selection, cache fingerprints и full-data refit;
+5. output validation и отделённый от классификации explanation stage.
+
+Отдельно для каждой категории обучаются lexical/VLM heads, выбираются fusion
+weights и threshold. Retrieval или узкие rules подключаются только когда это
+подтверждается структурой ошибок конкретного направления. Это позволяет новой
+категории не менять решения уже развёрнутых heads.
+
+Минимальный путь расширения:
+
+```text
+новые размеченные карточки
+        ↓
+task context + category registration
+        ↓
+group OOF → category heads → threshold
+        ↓
+independent holdout / outer audit
+        ↓
+versioned artifact и общий offline runner
+```
+
+В текущем конкурсном runtime список категорий, `TASK_CONTEXT` и часть rule tokens
+зафиксированы явно. Поэтому подключение нового направления требует расширить эти
+конфигурации и повторить обучение/валидацию. Система масштабируется инженерно,
+но не заявляется как zero-shot классификатор неизвестных правил.
+
+## 12. Артефакт и runtime
 
 `official_multimodal.joblib` содержит:
 
@@ -139,6 +174,6 @@ logit-blend с v19, α=0.25, threshold=0.26
 
 Веса Qwen в архив не входят: runner использует `SHARED_MODELS_PATH`. Runtime зависит только от библиотек официального baseline-образа и не требует `sentence_transformers`.
 
-## 12. Почему не end-to-end LoRA
+## 13. Почему не end-to-end LoRA
 
 LoRA выглядел естественным следующим шагом, но редкие положительные группы делали его нестабильным. Qwen3.5 LoRA почти обнулял train loss и давал holdout F1 `0.074`; Qwen3-VL hard-sampled LoRA ухудшал AP сложного fold с `0.363` до `0.209`. Поэтому финальная подтверждённая версия сохраняет frozen encoders: она проще, дешевле и лучше переносится.

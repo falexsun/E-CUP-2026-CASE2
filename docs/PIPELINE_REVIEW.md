@@ -22,6 +22,8 @@
 - full refit не переоткрывает thresholds;
 - final runner offline и использует только shared models;
 - deterministic explanation fallback сохраняет валидный output; его factual limitations раскрыты в `COMMENT_QUALITY.md`;
+- общая data/VLM/validation инфраструктура отделена от category-specific heads,
+  fusion и thresholds, поэтому новые направления подключаются независимо;
 - metric, grouping, cache alignment и output contract покрыты тестами.
 
 ## Осознанные компромиссы
