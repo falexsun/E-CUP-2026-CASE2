@@ -26,6 +26,7 @@
 - artifact SHA-256: `e7604e6868e46f673428aebf8439eb87e3875fdfbd8c3c2e4cfd8c7ac7d9d53a`;
 - submitted ZIP SHA-256: `1361b836b6c926e0be0c99689b29238a82d8add53adc7a4e17e537ddbfe12b07`;
 - public Macro F1: `0.8142217631`.
+- private Macro F1: `0.8644397759`, итоговое 8-е место.
 
 ## Проверки
 

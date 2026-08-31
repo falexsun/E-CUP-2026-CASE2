@@ -1,9 +1,8 @@
 # Финальное конкурсное решение
 
 Каноническая отправка — `qwen3vl_v45_STANDARDIZED_REGEX_FULL_REFIT_20260812.zip`.
-Именно она улучшила результат на private leaderboard и вывела решение в топ-8.
-Точный private score в репозитории не указан, потому что он не был сохранён в
-машиночитаемом журнале. Подтверждённый public score — `0.8142217630853994`.
+Она получила public Macro F1 `0.8142217630853994` и итоговый private Macro F1
+`0.8644397759`, заняв 8-е место private leaderboard.
 
 ## Неизменяемый snapshot
 
@@ -36,4 +35,3 @@ uv run python scripts/verify_final_submission.py
 Веса `Qwen/Qwen3-VL-Embedding-2B` и `Qwen/Qwen3.5-4B` не входят в репозиторий:
 в официальном окружении они предоставляются через `SHARED_MODELS_PATH`.
 Идентификаторы, revisions и лицензии зафиксированы в [`MODELS.md`](MODELS.md).
-

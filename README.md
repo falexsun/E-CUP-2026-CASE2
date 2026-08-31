@@ -11,7 +11,7 @@
 |---|---|
 | Финальная версия | `v45` |
 | Public Macro F1 | **0.8142217631** |
-| Private leaderboard | **топ-8** |
+| Private Macro F1 | **0.8644397759 · топ-8** |
 | Runtime-модели | Qwen3-VL-Embedding-2B + Qwen3.5-4B |
 | Лицензии моделей | Apache-2.0 |
 | Точный submission | [`final_submission/`](final_submission/) |
@@ -94,6 +94,7 @@ flowchart LR
 | reference kNN v19 | public | 0.808892 | основа финальной версии |
 | title/rules v27 | public | 0.800964 | отклонён: optimistic lookup не перенёсся |
 | **standardized + rules v45** | **public** | **0.814222** | **финальный submission** |
+| **standardized + rules v45** | **private** | **0.864440** | **итоговое 8-е место** |
 
 Полный машинно-читаемый журнал: [`experiments.csv`](experiments.csv).
 

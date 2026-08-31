@@ -5,6 +5,7 @@
 | Требование | Где проверить | Статус |
 |---|---|---|
 | Репозиторий соответствует финальному submission | [`final_submission/`](../final_submission/) и [FINAL_SUBMISSION.md](FINAL_SUBMISSION.md) | выполнено |
+| Итоговый результат зафиксирован | private Macro F1 `0.8644397759`, 8-е место | выполнено |
 | Обученный classifier доступен | `final_submission/artifacts/official_multimodal.joblib`, 28 603 061 байт | выполнено |
 | Базовые веса не дублируются | Qwen читаются из `SHARED_MODELS_PATH` | выполнено |
 | Только разрешённые модели до 4B | [MODELS.md](MODELS.md) | выполнено |

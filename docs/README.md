@@ -23,7 +23,7 @@
 - [EXPERIMENT_JOURNEY.md](EXPERIMENT_JOURNEY.md) — последовательная история от
   baseline до v45, включая ошибки и отклонённые ветки.
 - [RESULTS.md](RESULTS.md) — public, holdout и outer числа без смешения источников.
-- [`experiments.csv`](../experiments.csv) — первичный журнал 33 запусков.
+- [`experiments.csv`](../experiments.csv) — первичный журнал 34 запусков.
 
 ## Насколько оценке можно доверять?
 
