@@ -29,8 +29,9 @@ uv run python scripts/verify_final_submission.py
 ## Два слоя репозитория
 
 - `final_submission/` — точный конкурсный runtime и обученный classifier artifact;
-- `src/`, `scripts/`, `configs/`, `Makefile` — воспроизводимая цепочка обучения,
-  абляции и проверки, из которой был собран v45.
+- `src/`, `scripts/`, `configs/`, `Makefile` — зафиксированная цепочка обучения,
+  абляции и проверки, из которой был собран v45; точная граница выполненного
+  воспроизведения описана в [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
 
 Веса `Qwen/Qwen3-VL-Embedding-2B` и `Qwen/Qwen3.5-4B` не входят в репозиторий:
 в официальном окружении они предоставляются через `SHARED_MODELS_PATH`.

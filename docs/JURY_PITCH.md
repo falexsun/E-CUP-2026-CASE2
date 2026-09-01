@@ -32,7 +32,7 @@
 
 ## 4:15–5:00 — воспроизводимость
 
-> Полный путь оформлен CLI-командами: group data, split, lexical OOF, Qwen embeddings, multimodal selection, frozen full refit, attach kNN, standardized head и пять узких rules из versioned JSON. Я повторно собрал reference bank этим builder: совпали все 5 502 ID, labels, frozen параметры, а максимальная разница embeddings равна нулю. Tests проверяют metric, grouping, cache alignment, artifact assembly и output contract. Точный отправленный runtime и classifier artifact лежат в `final_submission/` и проверяются по SHA-256.
+> Полный путь оформлен CLI-командами: group data, split, lexical OOF, Qwen embeddings, multimodal selection, frozen full refit, attach kNN, standardized head и пять узких rules из versioned JSON. Из того же полного embedding cache я повторно собрал reference bank и v45: совпали все 5 502 reference ID, labels, frozen параметры и все 12 971 train-решений. Это доказывает artifact reassembly, но не побитово идентичную повторную extraction от JPEG: полный второй end-to-end GPU-прогон не выполнялся. Точный отправленный runtime и classifier artifact лежат в `final_submission/` и проверяются по SHA-256.
 
 Показать: [REPRODUCIBILITY.md](REPRODUCIBILITY.md) и `make quality`.
 
@@ -84,7 +84,21 @@ Classifier verdict уже рассчитан. Runner формирует determin
 
 ### Почему ручные правила не являются подгонкой под public?
 
-Они выбраны до отправки по двум критериям: прямо следуют из определения класса и не имеют false positive на released data. Правила не используют public labels, exact-title словарь или соседей из test. При этом их outer gain нельзя считать полностью независимым: паттерны отбирались на всём released train. Поэтому я опираюсь на внешний public результат уже замороженной v45, а не выдаю локальный proxy за unbiased estimate.
+Они выбраны до отправки по двум критериям: следуют из определения класса и не
+имеют false positive среди 39 совпадений на released data. Правила не используют
+public labels, exact-title словарь или соседей из test. При этом они дали большую
+часть локального прироста после v19, а их outer gain нельзя считать независимым:
+паттерны отбирались на всём released train. ML/kNN v19 без пяти финальных regex
+уже получил public `0.808892`; гибридный v45 — `0.814222`. Public участвовал в
+выборе версии, а private-ablation нет, поэтому точную величину переносимого
+вклада правил я не заявляю.
+
+### Почему private заметно выше public?
+
+Официально private содержит примерно 3 800 товаров против 1 600 в public, но
+его категориальный состав и отдельные F1 неизвестны. Код submission не менялся.
+Поэтому разрыв `0.814222 → 0.864440` — итог двух разных закрытых split, а не
+доказательство улучшения модели, вклада отдельного компонента или «шума».
 
 ### Как добавить новое направление модерации?
 
@@ -102,6 +116,7 @@ holdout и leakage audit до включения в общий artifact.
 - Не выдавать локальный outer `0.8527` за leaderboard score; подтверждённый public v45 — `0.814222`.
 - Не смешивать разные выборки: итоговый private v45 — `0.8644397759`, public v45 — `0.8142217631`.
 - Не сравнивать outer `0.8527` напрямую с public leaderboard.
+- Не объяснять разрыв public/private шумом без закрытых labels и category F1.
 - Не утверждать, что formal 100-example audit сохранён: был targeted error analysis, но отдельный файл не создан.
 - Не скрывать v9/v27 — именно их разбор демонстрирует validation discipline.
 - Не описывать Qwen3.5 как classifier: в финале она только объясняет frozen verdict.

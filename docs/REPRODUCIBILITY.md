@@ -1,12 +1,22 @@
 # Воспроизводимость
 
-## Что считается воспроизведением
+## Уровни воспроизводимости и фактический статус
 
-Есть три уровня проверки:
+Слово «воспроизведение» здесь не используется для разных проверок как синоним.
 
-1. **CPU checks** — установка, unit-тесты, metric/split/output contracts.
-2. **Training reproduction** — построение grouped data, OOF, embeddings, v19 foundation, standardized head и v45 artifact.
-3. **Official runtime smoke** — запуск точного ZIP в baseline-окружении с моделями из `SHARED_MODELS_PATH`.
+| Уровень | Что проверяется | Фактически выполнено |
+|---|---|---|
+| Exact submission replay | неизменность отправленного ZIP/artifact, runtime и output contract | SHA-256, CPU checks и A100 smoke на 10 строках |
+| Artifact reassembly | повторная сборка v19/v45 из зафиксированного полного embedding cache | 12 971/12 971 решений совпали, max score diff `0.0` |
+| End-to-end rebuild | новая extraction embeddings из исходных изображений и полное обучение с нуля | команды и окружение зафиксированы; полный второй прогон не выполнялся |
+
+Таким образом, доказана точная повторяемость inference snapshot и сборки
+classifier из сохранённых признаков. Репозиторий предоставляет end-to-end
+training pipeline, но не заявляет, что независимый полный запуск от сырых
+изображений уже дал побитово идентичный `joblib`. На GPU такой критерий в любом
+случае сильнее практически необходимого: разумная проверка — совпадение
+предсказаний/метрики в заданном допуске при фиксированных model revision,
+окружении, данных и seeds.
 
 ## Окружение
 
@@ -157,7 +167,8 @@ uv run python scripts/build_regex_only_artifact.py \
 
 `load_embedding_cache` дополнительно требует полного совпадения списка и порядка ID.
 
-Builder `official-attach-knn` был повторно запущен из repo-команд на сохранённом cache и сравнён с public v19:
+Builder `official-attach-knn` был повторно запущен из repo-команд на том же
+сохранённом полном embedding cache и сравнён с public v19:
 
 - frozen параметры совпали;
 - 5 502/5 502 reference IDs совпали в том же порядке;
@@ -165,13 +176,19 @@ Builder `official-attach-knn` был повторно запущен из repo-�
 - `max_abs_difference` reference embeddings = `0.0`;
 - fingerprint reference IDs: `69edc70fbe31d54a5a37fe625b4ecce7bd84a12832d2f7e3ce6ad3c117170b7d`.
 
-Поверх воспроизведённой v19 были повторно запущены v45 builders с [configs/v45.json](../configs/v45.json). Сравнение с реально отправленным артефактом на всех 12 971 released строках показало:
+Поверх воспроизведённой v19 были повторно запущены v45 builders с
+[configs/v45.json](../configs/v45.json). Сравнение с реально отправленным
+артефактом на всех 12 971 released строках показало:
 
 - scaler mean/scale и коэффициенты Logistic Regression совпали точно;
 - reference IDs, labels и embeddings совпали точно;
 - список и порядок пяти regex совпали;
 - 12 971/12 971 predictions совпали;
 - `max_abs_difference` итогового decision score = `0.0`.
+
+Эта проверка изолирует детерминированность grouping, head training, reference
+bank assembly и правил от отдельного вопроса повторной нейросетевой extraction.
+Она не является доказательством полного rebuild от JPEG-файлов.
 
 ## Контрольные хэши
 

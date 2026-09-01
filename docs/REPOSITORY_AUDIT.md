@@ -12,8 +12,8 @@
 | Открытые лицензии моделей | обе runtime-модели Apache-2.0 | выполнено |
 | Нет закрытых inference API | offline `transformers`, scikit-learn и локальные artifacts | выполнено |
 | Нет внешних train labels или закрытых объяснений | только released train и его labels | выполнено |
-| Training pipeline воспроизводим | [REPRODUCIBILITY.md](REPRODUCIBILITY.md), `make reproduce-v45` | выполнено |
-| Архитектура расширяема на новые категории | общие schema/VLM/OOF/refit stages + отдельные category heads; [SOLUTION.md](SOLUTION.md#11-масштабирование-на-новые-категории) | выполнено с retraining |
+| Training pipeline предоставлен | [REPRODUCIBILITY.md](REPRODUCIBILITY.md), `make reproduce-v45` | exact reassembly проверена; полный второй raw-data rebuild не выполнялся |
+| Архитектура имеет точки расширения | общие schema/VLM/OOF/refit stages + отдельные category heads; [SOLUTION.md](SOLUTION.md#11-расширение-на-новые-категории) | качество на третьей категории не проверялось |
 | Frozen decisions versioned | [`configs/v19_knn.json`](../configs/v19_knn.json), [`configs/v45.json`](../configs/v45.json) | выполнено |
 | История экспериментов сохранена | [EXPERIMENT_JOURNEY.md](EXPERIMENT_JOURNEY.md), [`experiments.csv`](../experiments.csv) | выполнено |
 | Validation leakage описан честно | [VALIDATION.md](VALIDATION.md) | выполнено |
